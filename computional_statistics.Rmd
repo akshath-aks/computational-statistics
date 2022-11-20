@@ -1,0 +1,251 @@
+---
+title: "ComputationalStatistics-Lab01-Group 14"
+author: "Akshath Srinivas, Samira Goudarzi"
+date: "2022-11-14"
+output: html_document
+bibliography: ["ref.bib"]
+biblio-style: "apalike"
+link-citations: true 
+---
+
+```{r setup,fig.align='center',out.extra='angle=90', include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+```
+
+# Assignment 1
+
+## Question 1
+
+```{r,eval=TRUE,echo=FALSE}
+
+
+x1<- 1/3
+x2<- 1/4
+if (x1-x2==1/12) {
+  print ( "Subtraction is correct " )
+} else {
+  print ( "Subtraction is wrong" )
+}
+
+
+x1<-1 
+x2<-1/2
+if ( x1-x2==1/2 ) {
+  print ( "Subtraction is correct")
+} else {
+  print ( "Subtraction is wrong" )
+}
+```
+
+### subquestion 1
+
+1/3 is a recurring division. We get infinite number of digits on division. Squeezing infinitely many real numbers into a finite number of bits requires an approximate representation . Therefore floating point approximation is rounded as finite representation which will result to the limited precision of mantissa and stored in computer memory.
+1/4 results finite digits, computer memory can store it without loosing precision in mantissa.
+when we do floating point computation (1/3-1/4) we get a output which is a result of floating point rounding error of 1/3, but 1/12 is stored in computer memory in a different rounding approximation which is also shown below. This the reason we get subtraction is wrong in first case.
+
+In the second code snippet both 1 and 1/2 are absolute values and has finite digits, computer memory can store it without loosing precision in mantissa.[@gentle2009generation].
+
+```{r,eval=TRUE,echo=FALSE}
+
+options(digits=22)
+x1<-1/3
+
+cat(" x1 = 1/3 is equal to", x1,"\n")
+x2<-1/4
+cat(" x2 = 1/4 is equal to", x2,"\n")
+diff<-x1-x2
+cat(" x1-x2 is equal to", diff,"\n")
+val<-1/12
+cat(" x = 1/12 is equal to", val,"\n")
+
+```
+
+### subquestion 2
+
+We can improve the first case by using all.equal() function as used below. This function tests nearly equal values and outputs TRUE or FALSE.
+
+we can use very small scale number as threshold to compare the values, then we can assume a-b equals c.
+
+```{r,eval=TRUE,echo=FALSE}
+
+x1<- 1/3
+x2<- 1/4
+if (all.equal(x1-x2,1/12)) {
+  print ( "Subtraction is correct " )
+} else {
+  print ( "Subtraction is wrong" )
+}
+```
+
+## Question 2
+
+### subquestion 1
+
+Our R function to calculate the derivative of f(x) = x when epsilon is 10**(-15):( please see the code in appendix)
+```{r,eval=TRUE,echo=FALSE}
+dev <- function(x){
+  d = ((x+10^(-15))-x)/(10^(-15))
+  return(d)
+}
+```
+
+### subquestion 3
+
+1 is the true value for both the cases
+In the first case as epsilon is very small value by adding 1 yields a rounding approximation value as a result of limited precision of mantissa.
+1+10^-15 yields 1.000000000000001110223, when we subtract 1 from this value we get a value in numerator which little more than epsilon value in denominator i.e numerator greater than denominator which yields value little more than 1 on differentiating.
+
+For second case, the magnitude of x is very large even when adding epsilon 10^-15(100000 + 10^-15), computer memory stores this value by loosing part of the mantissa and remains almost same as x. Hence the numerator becomes zero after subtracting x which will yield 0 as output.
+
+```{r,eval=TRUE,echo=FALSE}
+#Question 2
+
+dev <- function(x){
+  d = ((x+10^(-15))-x)/(10^(-15))
+  return(d)
+}
+cat("For x = 1, the derivative is :", dev(1),"\n")
+
+cat("For x = 100000, the derivative is :", dev(100000),"\n")
+
+```
+
+## Question 3
+
+```{r,eval=TRUE,echo=FALSE}
+
+#Question 3, subquestion 1
+my_var<-function(x){
+  var<-1/(length(x)-1)*(sum(x^2)-1/length(x)*(sum(x))^2)
+  return(var)
+}
+set.seed(12345)
+x<-rnorm(10000,mean = 10^8,sd=1)
+cat("My variance function value :", my_var(x),"\n")
+cat("Inbuilt var function value :", var(x),"\n")
+```
+
+### subquestion 3
+
+We can see from the below plot with X axis as number of samples and  Y axis as the difference between my_var function and inbuilt var function. We can also observe that for less number of elements(i) in xi vector(please see the code in appendix), the difference values are more accumulated towards zero i.e the difference between my function and inbuilt var function is less , but as the number of elements increases in the xi vector, the difference increases.
+
+This behavior is because that all the sample values are approximated and we are doing arithmetic operations like sum(x)^2 yields large values causing integer overflow. So, the answer(variance value) will loose accuracy.
+
+```{r,eval=TRUE,echo=FALSE}
+
+#Question 4, subquestion 3
+Y<-c()
+for(i in 1:length(x)){
+  xi<-x[1:i]
+  yi<-my_var(xi)-var(xi)
+  Y<-c(Y,yi)
+}
+plot(1:10000,Y)
+
+```
+
+### subquestion 4
+
+Improving the function by calculating the mean of the vector and inputting this value to variance formula.(please refer to the formula in appendix code)
+
+```{r,eval=TRUE,echo=FALSE}
+
+#Question 3, subquestion 4
+my_var_imp<-function(x){
+  mean<-sum(x)/length(x)
+  var<-sum((x-mean)^2)/(length(x)-1)
+  return(var)
+}
+cat("My variance function improved value :", my_var_imp(x),"\n")
+cat("Inbuilt var function value :", var(x),"\n")
+```
+
+```{r,eval=TRUE,echo=FALSE}
+Y_1<-c()
+for(i in 1:length(x)){
+  xi_1<-x[1:i]
+  yi_1<-my_var_imp(xi_1)-var(xi_1)
+  Y_1<-c(Y_1,yi_1)
+}
+plot(1:10000,Y_1)
+
+```
+
+## Question 4
+
+```{r,eval=TRUE,echo=FALSE}
+
+#Question 4
+df<-as.data.frame(matrix(nrow=0,ncol=6))
+colnames(df)<-c('n','k','a','b','c','actual')
+for(n in 25:100 ){
+  k<-sample(1:n-1,1)
+  a<-prod ( 1 : n ) / (prod ( 1 : k ) * prod ( 1 : ( n-k ) ) )
+  b<-prod( ( k+1) : n ) / prod ( 1 : ( n-k ) )
+  c<-prod ( ( ( k+1) : n ) / ( 1 : ( n-k ) ) )
+  ac<-choose(n,k)
+  df<-rbind(df,data.frame(n=n,k=k,a=a,b=b,c=c,actual=ac))
+}
+# plot<-df %>% pivot_longer(c('a','b','c','actual'),names_to='prod_type',
+#                           values_to='prod')
+# ggplot(df,aes(x=n,y=prod))+
+#   geom_point(aes(color=prod_type))
+head(df)
+```
+
+### subquestion 1
+
+**Problem with A:** when k==0,k==n, it will compute prod(1:0) which will lead to inf as result
+
+**Problem with B:** when k==n, it will compute prod(1:0) in denominator which will lead to inf as result
+
+**Problem with C:** when k==n, it will compute prod(1:0) in denominator which will lead to inf as result
+
+### subquestion 2
+
+For A overflow happens when value of n is equal or greater than 171
+
+For B overflow happens when value of n is equal or greater than 171, k=0
+
+For C overflow happens when value of n is equal or greater than 200, k is equal or greater than 200
+
+```{r,eval=TRUE,echo=FALSE}
+
+n<-171
+k<-2
+a<-prod ( 1 : n ) / (prod ( 1 : k ) * prod ( 1 : ( n-k ) ) )
+cat(" For (n = 171 , k=2) ,a=", a,"\n")
+
+n<-171
+k<-1
+b<-prod( ( k+1) : n ) / prod ( 1 : ( n-k ) )
+cat(" For (n = 171 , k=0) ,b=", b,"\n")
+
+n<-200
+k<-200
+c<-prod ( ( ( k+1) : n ) / ( 1 : ( n-k ) ) )
+cat(" For (n = 200 , k=200) ,c=", c,"\n")
+
+barplot(c(171,171,200), main = 'overflows for n values',
+        names.arg = c('method A: n=171','method B: n=171','method C: n=200'))
+
+barplot(c(2,0,200), main = 'overflows for K values',
+        names.arg = c('method A: k=2','method B: k=0','method C: k=200'))
+```
+
+### subquestion 3
+
+**Method A** : serious overflow problem happens when n grows as it will compute prod(1:n) first, no matter the magnitude of K, it will overflow when n is increased.
+
+**Method B** is better than A, but it will also face overflow problem as we increase the n.
+
+**Method c** is better than both method a and method b, as the vector division is happening inside prod() function, which will lower the magnitude and risk of overflow. But, it will eventually overflow when n and k increases to large value.
+
+# Appendix
+
+```{r ref.label=knitr::all_labels(), echo=TRUE, eval=FALSE}
+```
+# Reference
